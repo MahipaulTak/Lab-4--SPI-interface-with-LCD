@@ -10,11 +10,11 @@
 volatile unsigned int threadID = 0;
 extern bool commandStringBeingSent=0;
 extern bool commandStringToSend=0;
-extern bool commandStringIsInstruction=0;
+extern bool commandStringIsInstruction=0; // not being used
 extern bool waiting  =0;
 //extern char SPI_MessageBuffer[256]= [];
 char message[100] = " HELOOOO";
-unsigned long int initval[4] = {0x0f, 0x1, 0x2, 0x7};
+unsigned long int initval[4] = {0x0f, 0x1, 0x2, 0x7}; // not being used
 int initcounter = 0;
 int counter = 0;
 
@@ -35,8 +35,15 @@ void init_SPI(void){
 
 	//threadID = uTTCOSg_AddThread(inint_LCD, ONE_TICK, EXECUTE_EVERY_SECOND);
 }
+/*
+ 
 
-enum initLCD {highmessagee, lowmessagee, doshighmessagee};
+ 
+== function never used as different method found and used to initialize and send all instructions to LCD ==
+
+ 
+ 
+ enum initLCD {highmessagee, lowmessagee, doshighmessagee};
 static initLCD currentState_LCDd = highmessagee;
 
 void inint_LCD(){
@@ -90,66 +97,55 @@ void inint_LCD(){
 	}
 }
 
-
+*/
 
 void init_LCD(void){
 
 
 
-
+// turn on LCD
 	*pSPI_TDBR = 0x10f;
 	ssync();
-	//while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
 	for (int var = 0; var < 0xaaaaa; ++var) {}
 	*pSPI_TDBR = 0x00f;
 	ssync();
 	for (int var = 0; var < 0xaaaaa; ++var) {}
-	//while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
+	
 	*pSPI_TDBR = 0x10f;
 	ssync();
 	for (int var = 0; var < 0xaaaaa; ++var) {}
-//	while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
+
+    
+ // clear LCD
 	*pSPI_TDBR = 0x101;
 	ssync();
 	for (int var = 0; var < 0xaaaaa; ++var) {}
-//	while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
+
 	*pSPI_TDBR = 0x001;
 	ssync();
 	for (int var = 0; var < 0xaaaaa; ++var) {}
-//	while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
+
 	*pSPI_TDBR = 0x101;
 	ssync();
 	for (int var = 0; var < 0xaaaaa; ++var) {}
-//	while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
+
+
+// set LCD to rotate
+	*pSPI_TDBR = 0x107;
+	ssync();
+	for (int var = 0; var < 0xaaaaa; ++var) {}
+
+	*pSPI_TDBR = 0x007;
+	ssync();
+	for (int var = 0; var < 0xaaaaa; ++var) {}
 
 	*pSPI_TDBR = 0x107;
 	ssync();
 	for (int var = 0; var < 0xaaaaa; ++var) {}
-//	while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
-	*pSPI_TDBR = 0x007;
-	ssync();
-	for (int var = 0; var < 0xaaaaa; ++var) {}
-//	while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
-	*pSPI_TDBR = 0x107;
-	ssync();
-	for (int var = 0; var < 0xaaaaa; ++var) {}
-//	while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
-/*
-	*pSPI_TDBR = 0x11c;
-	ssync();
-	for (int var = 0; var < 0xaaaaa; ++var) {}
-	//while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
-	*pSPI_TDBR = 0x01c;
-	ssync();
-	for (int var = 0; var < 0xaaaaa; ++var) {}
-	//while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
-	*pSPI_TDBR = 0x11c;
-	ssync();
-	for (int var = 0; var < 0xaaaaa; ++var) {}
-	//while(1){if(*pSPI_STAT&0x1 == 0x1){break;}}
-*/
-//	uTTCOSg_AddThread(print_LCD, ONE_TICK, EXECUTE_EVERY_SECOND);
 }
+
+
+/*==== LCD display State Machine ====*/
 
 enum printLCD {highmessage, lowmessage, doshighmessage};
 static printLCD currentState_LCD = highmessage;
@@ -161,9 +157,12 @@ void print_LCD(){
 	unsigned char gpioinput;
 	unsigned char gpiooutput;
 	switch (currentState_LCD){
-
+// state  for sending first character of buffer into TBDR register and waiting till blackfin shows
+// the message has sent till moving to next character
+// this message is with E high so as to properly set up the message
+// waiting variable was designed before the implementation of message threads and essentially fills the role
+// of message being sent
 	BEGIN_STATE highmessage:
-	//if(initcounter == 4){uTTCOSg_DeleteThread(threadID);initcounter++;}
 	commandStringBeingSent = true;
 	if (!waiting) {
 		*pSPI_TDBR = (message[counter] | 0x500);
@@ -174,7 +173,8 @@ void print_LCD(){
 		nextStateToDo = lowmessage;
 	}
 	END_STATE
-
+//sends message to LCD and makes it accept by setting E bit to a low
+            
 	BEGIN_STATE lowmessage:
 	if (!waiting) {
 		*pSPI_TDBR = ((~0x100) & (0x500 |message[counter] ));
@@ -185,7 +185,7 @@ void print_LCD(){
 		nextStateToDo = doshighmessage;
 	}
 	END_STATE
-
+// bring E bit to high state again so as to avoid any problems
 	BEGIN_STATE doshighmessage:
 	if (!waiting) {
 		*pSPI_TDBR = (message[counter] | 0x500);
@@ -195,6 +195,9 @@ void print_LCD(){
 		waiting = 0;
 		nextStateToDo = highmessage;
 		counter++;
+        
+        // checks if entire message sent and if it has sets commandStringToSend and commandStringBeingSent to false
+        // to allow for other message threads to submit text to buffer
 		if(counter == strlen(message) ){
 			counter = 0;
 			commandStringToSend = false;
@@ -210,7 +213,7 @@ void print_LCD(){
 
 
 
-
+// first message thread, all message threads follow same pattern
 void SPI_Message(void){
 	Flash_LED3();
 	if( commandStringBeingSent == true){return;}

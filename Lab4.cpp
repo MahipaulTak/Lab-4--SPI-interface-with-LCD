@@ -25,6 +25,8 @@ int main()
 	Init_LED_GPIOInterface();
 	Init_Input_GPIOInterface();
 
+    // initialize and set up the SPI and LCD before audio interrupt change so as to make sure
+    // LCD has correct setting before starting message threads
 	init_SPI();
 	init_LCD();
 
@@ -36,6 +38,7 @@ int main()
 
 
 uTTCOSg_Start_Scheduler(maxNumberThreads);
+    // starting schedular changes spi register and this resets to allow for proper SPI usage
 init_SPI();
 
 
