@@ -22,7 +22,7 @@ void SPI_Message(void);
 void SPI_Message2(void);
 
 void SPI_Message3(void);
-
+void SPI_Message4(void);
 extern char message[100];
 extern int counter ;
 
