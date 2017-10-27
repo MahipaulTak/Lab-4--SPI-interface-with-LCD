@@ -18,7 +18,8 @@ unsigned long int initval[4] = {0x0f, 0x1, 0x2, 0x7}; // not being used
 int initcounter = 0;
 int counter = 0;
 
-
+void test5(int k){
+	return k+5;}
 void init_SPI(void){
 	*pSPI_CTL = 0x0400; // trun off spi interface
 	ssync();
