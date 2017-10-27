@@ -7,7 +7,7 @@
 
 #include "Lab0_Library.h"
 #include <string.h>
-
+void test5(int k);
 
 void init_SPI(void);
 
