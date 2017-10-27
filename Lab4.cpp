@@ -14,7 +14,7 @@
 #include <uTTCOSg2016/uTTCOSg.h>
 
 int main()
-{
+{int test = 5
 
 
 
